@@ -6,29 +6,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 
-
-def get_filtered_mnist_data():
-    """
-    Obtain MNIST dataset from 1 to 3
-    x is input image data, y is label
-    """
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    x_train_filtered = x_train[np.isin(y_train, [1, 2, 3])]
-    y_train_filtered = y_train[np.isin(y_train, [1, 2, 3])]
-
-    x_test_filtered = x_test[np.isin(y_test, [1, 2, 3])]
-    y_test_filtered = y_test[np.isin(y_test, [1, 2, 3])]
-
-    return (x_train_filtered, y_train_filtered - 1), (x_test_filtered, y_test_filtered - 1)
-
-
 if __name__ == '__main__':
-    train, test = get_filtered_mnist_data()
+    train, test = mnist.load_data()
 
     model = Sequential()
     model.add(Flatten(input_shape=(28, 28)))
     model.add(Dense(128, activation='relu'))
-    model.add(Dense(3, activation='softmax'))
+    model.add(Dense(10, activation='softmax'))
 
     model.compile(optimizer='adam',
                   loss='sparse_categorical_crossentropy',
@@ -46,7 +30,8 @@ if __name__ == '__main__':
     print('Confusion matrix:')
     print(cm)
 
-    sns.heatmap(cm, annot=True, cmap='Blues', fmt='d', xticklabels=[1, 2, 3], yticklabels=[1, 2, 3])
+    labels = list(range(10))
+    sns.heatmap(cm, annot=True, cmap='Blues', fmt='d', xticklabels=labels, yticklabels=labels)
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.savefig('result.png')
