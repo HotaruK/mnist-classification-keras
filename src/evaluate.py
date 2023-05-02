@@ -11,6 +11,7 @@ import pandas as pd
 def read_handwritten_data():
     x = []
     y = []
+    filenames = []
 
     for i in range(10):
         class_folder = os.path.join('../handwritten', str(i))
@@ -21,12 +22,13 @@ def read_handwritten_data():
             img = img.reshape(28, 28)
             x.append(img)
             y.append(i)
+            filenames.append(file_name)
 
-    return (x, y)
+    return (x, y, filenames)
 
 
 if __name__ == '__main__':
-    x, y = read_handwritten_data()
+    x, y, filenames = read_handwritten_data()
 
     x_test = np.array(x)
     y_test = np.array(y)
@@ -38,16 +40,34 @@ if __name__ == '__main__':
     accuracy = np.mean(predicted_labels == y_test)
     print('Test accuracy:', accuracy)
 
+    # confusion matrix
     cm = confusion_matrix(y_test, predicted_labels)
     print('Confusion Matrix:\n', cm)
     labels = list(range(10))
     sns.heatmap(cm, annot=True, cmap='Blues', fmt='d', xticklabels=labels, yticklabels=labels)
     plt.xlabel('Predicted')
     plt.ylabel('True')
-    plt.savefig('confusionmatrix.png')
+    plt.savefig('../analysis/handwritten-confusion-matrix.png')
 
     precision, recall, f1_score, _ = precision_recall_fscore_support(y_test, predicted_labels)
     metrics_df = pd.DataFrame({'Precision': precision,
                                'Recall': recall,
                                'F1-Score': f1_score})
-    metrics_df.to_csv('metrics.csv', index=False)
+    metrics_df.to_csv('../analysis/metrics.csv', index=False)
+
+    # misclassification results
+    misclassified_df = pd.DataFrame(
+        columns=['Label', 'Filename', 'True Class', 'Predicted Class 1', 'Predicted Class 2', 'Predicted Class 3'])
+    for i in range(len(x_test)):
+        if predicted_labels[i] != y_test[i]:
+            top_3_classes = np.argsort(predictions[i])[-3:][::-1]
+            top_3_probabilities = predictions[i][top_3_classes]
+            new_row = pd.DataFrame({'Label': [y[i]],
+                                    'Filename': [filenames[i]],
+                                    'True Class': [y_test[i]],
+                                    'Predicted Class 1': [f'{top_3_classes[0]} ({top_3_probabilities[0]:.2f}%)'],
+                                    'Predicted Class 2': [f'{top_3_classes[1]} ({top_3_probabilities[1]:.2f}%)'],
+                                    'Predicted Class 3': [f'{top_3_classes[2]} ({top_3_probabilities[2]:.2f}%)']})
+            misclassified_df = pd.concat([misclassified_df, new_row], ignore_index=True)
+
+    misclassified_df.to_csv('../analysis/misclassified.csv', index=False)
