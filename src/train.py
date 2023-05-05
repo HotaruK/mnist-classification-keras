@@ -14,9 +14,12 @@ if __name__ == '__main__':
                   loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
 
-    model.fit(train[0], train[1], epochs=20)
+    x_train = train[0] / 255.0
+    x_test = test[0] / 255.0
 
-    test_loss, test_acc = model.evaluate(test[0], test[1])
+    model.fit(x_train, train[1], epochs=10)
+
+    test_loss, test_acc = model.evaluate(x_test, test[1])
     print('Test accuracy:', test_acc)
 
     model.save('../mnist_model.h5')

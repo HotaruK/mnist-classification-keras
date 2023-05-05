@@ -30,7 +30,7 @@ def read_handwritten_data():
 if __name__ == '__main__':
     x, y, filenames = read_handwritten_data()
 
-    x_test = np.array(x)
+    x_test = np.array(x) / 255.0
     y_test = np.array(y)
 
     model = load_model('../mnist_model.h5')
